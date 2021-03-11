@@ -1,10 +1,9 @@
 package net.stormdev.uPlanes.hover;
 
-import net.minecraft.server.v1_12_R1.*;
-import net.stormdev.uPlanes.utils.CustomEntityHandler;
+import net.minecraft.server.v1_16_R2.*;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_16_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R2.entity.CraftEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -22,7 +21,7 @@ public class HoverCartEntity extends EntityArmorStand {
 
 	public void setHitBoxX(float hitBoxX) {
 		this.hitBoxX = hitBoxX;
-		setSize();
+		updateSize();
 	}
 
 	public float getHitBoxZ() {
@@ -31,7 +30,7 @@ public class HoverCartEntity extends EntityArmorStand {
 
 	public void setHitBoxZ(float hitBoxZ) {
 		this.hitBoxZ = hitBoxZ;
-		setSize();
+		updateSize();
 	}
 
 	private CraftHoverCart ce;
@@ -80,19 +79,16 @@ public class HoverCartEntity extends EntityArmorStand {
 	}
 	
 	public HoverCartEntity(World world) {
-		super(world);
-		this.loc = new Location(world.getWorld(), this.locX, this.locY, this.locZ);
-		setSize();
-		/*setSize(0.98F, 0.7F);*/
+		super(EntityTypes.ARMOR_STAND, world);
+		this.loc = new Location(world.getWorld(), this.locX(), this.locY(), this.locZ());
+		updateSize();
 	}
 	
 	public HoverCartEntity(Location loc) {
 		this(((CraftWorld)loc.getWorld()).getHandle());
 		this.loc = loc;
 		updatePosition(loc);
-		this.motX = 0;
-		this.motY = 0;
-		this.motZ = 0;
+		setMot(0, 0, 0);
 	}
 	
 	/*@Override
@@ -107,14 +103,15 @@ public class HoverCartEntity extends EntityArmorStand {
 		return this.yaw;
 	}
 
-	private void setSize(){
-		setSize(hitBoxX<0?0.98F:hitBoxX, hitBoxZ<0?0.7F:hitBoxZ);
+	@Override
+	public EntitySize a(EntityPose entitypose) { //Updates the size internally when updateSize is called from EntityArmorStand
+		return new EntitySize(hitBoxX < 0 ? 0.98F : hitBoxX, hitBoxZ < 0 ? 0.7F : hitBoxZ , false);
 	}
 	
 	public Location getTrueLocation(){
-		this.loc.setX(this.locX);
-		this.loc.setY(this.locY-OFFSET_AMOUNT);
-		this.loc.setZ(this.locZ);
+		this.loc.setX(this.locX());
+		this.loc.setY(this.locY()-OFFSET_AMOUNT);
+		this.loc.setZ(this.locZ());
 		this.loc.setYaw(this.yaw);
 		this.loc.setPitch(this.pitch);
 		this.loc.setWorld(world.getWorld());
@@ -125,7 +122,7 @@ public class HoverCartEntity extends EntityArmorStand {
 		this.loc = loc;
 		setPositionRotation(loc.getX(), loc.getY()+OFFSET_AMOUNT, loc.getZ(), loc.getYaw(), loc.getPitch());
 	}
-	
+
 	public HoverCart spawn(){
 		if(ce != null){
 			return ce;
@@ -141,41 +138,20 @@ public class HoverCartEntity extends EntityArmorStand {
 		CraftWorld w = ((CraftWorld)loc.getWorld());
 		w.getHandle().addEntity(this, CreatureSpawnEvent.SpawnReason.DEFAULT);
 		this.world.getServer().getPluginManager().callEvent(new VehicleCreateEvent((Vehicle)ce));
-		this.bukkitEntity = getHoverCartEntity();
 		updatePosition(loc);
 
 		HoverCart hc= getHoverCartEntity();
 
 		if(hc.getMaxPassengers() > 1){
 			//Allocate entity IDs to fake entities to show only to the client
-			this.fakeBoat = new EntityBoat(w.getHandle());
-			this.fakeArrow = new EntityArrow(w.getHandle()) {
-				@Override
-				protected ItemStack j() {
-					return null;
-				}
-			};
-			this.fakeArrow2 = new EntityArrow(w.getHandle()) {
-				@Override
-				protected ItemStack j() {
-					return null;
-				}
-			};
+			this.fakeBoat = new EntityBoat(EntityTypes.BOAT, w.getHandle());
+			this.fakeArrow = new EntityTippedArrow(EntityTypes.ARROW, w.getHandle());
+			this.fakeArrow2 = new EntityTippedArrow(EntityTypes.ARROW, w.getHandle());
 			if(hc.getMaxPassengers() > 2){
-				this.fakeBoat2 = new EntityBoat(w.getHandle());
-				this.fakeBoat3 = new EntityBoat(w.getHandle());
-				this.fakeArrow3 = new EntityArrow(w.getHandle()) {
-					@Override
-					protected ItemStack j() {
-						return null;
-					}
-				};
-				this.fakeArrow4 = new EntityArrow(w.getHandle()) {
-					@Override
-					protected ItemStack j() {
-						return null;
-					}
-				};
+				this.fakeBoat2 = new EntityBoat(EntityTypes.BOAT, w.getHandle());
+				this.fakeBoat3 = new EntityBoat(EntityTypes.BOAT, w.getHandle());
+				this.fakeArrow3 = new EntityTippedArrow(EntityTypes.ARROW, w.getHandle());
+				this.fakeArrow4 = new EntityTippedArrow(EntityTypes.ARROW, w.getHandle());
 			}
 		}
 
@@ -333,17 +309,17 @@ public class HoverCartEntity extends EntityArmorStand {
 	}
 	
 	@Override
-	public void Y(){ //Living entity base tick from EntityLiving
-		double prevX = this.locX;
-	    double prevY = this.locY;
-	    double prevZ = this.locZ;
+	public void tick(){ //Living entity base tick from EntityLiving
+		double prevX = this.locX();
+	    double prevY = this.locY();
+	    double prevZ = this.locZ();
 	    float prevYaw = this.yaw;
 	    float prevPitch = this.pitch;
-	    super.Y();
+	    super.tick();
 	    
 	    org.bukkit.World bworld = this.world.getWorld();
 	    Location from = new Location(bworld, prevX, prevY, prevZ, prevYaw, prevPitch);
-	    Location to = new Location(bworld, this.locX, this.locY, this.locZ, this.yaw, this.pitch);
+	    Location to = new Location(bworld, this.locX(), this.locY(), this.locZ(), this.yaw, this.pitch);
 	    Vehicle vehicle = (Vehicle)getHoverCartEntity();
 
 	    this.world.getServer().getPluginManager().callEvent(new VehicleUpdateEvent(vehicle));
@@ -351,8 +327,8 @@ public class HoverCartEntity extends EntityArmorStand {
 	    if (!from.equals(to)) {
 	      this.world.getServer().getPluginManager().callEvent(new VehicleMoveEvent(vehicle, from, to));
 	    }
-	    
-	    setSize();
+
+		updateSize();
 	}
 	
 	private DamageSource damagesource = null;
@@ -466,12 +442,8 @@ public class HoverCartEntity extends EntityArmorStand {
 		return this.ce;
 	}
 	
-	public static void register(){
-		CustomEntityHandler.registerEntity("ArmorStand", 30, EntityArmorStand.class, HoverCartEntity.class);
-	}
-	
 	@Override
-	 protected void cB() { //Bounding box collisions in EntityArmorStand
+	 protected void collideNearby() { //Bounding box collisions in EntityArmorStand
 	    List<?> list = this.world.getEntities(this, getBoundingBox());
 
 	    if ((list != null) && (!list.isEmpty()))

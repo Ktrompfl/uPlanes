@@ -615,13 +615,13 @@ public class uPlanesListener implements Listener {
 			}
 			Location nextHorizontal = cart.getLocation().clone().add(new Vector(ax, 0, az));
 			b = nextHorizontal.getBlock();
-			if(!b.isEmpty() && !b.isLiquid() && b.getType().isSolid() && !b.getType().equals(Material.CARPET) && !b.getType().equals(Material.BARRIER)){ //Crashed into something
+			String name = b.getType().name().toLowerCase();
+			if(!b.isEmpty() && !b.isLiquid() && b.getType().isSolid() && !name.contains("carpet") && !b.getType().equals(Material.BARRIER)){ //Crashed into something
 				boolean inside = true;
 				double relY = nextHorizontal.getY()-b.getY();
 				if(relY < 0){
 					relY = 0;
 				}
-				String name = b.getType().name().toLowerCase();
 				if(name.contains("step") && relY >= 0.4){
 					inside = false;
 				}
@@ -842,13 +842,13 @@ public class uPlanesListener implements Listener {
 				}
 				Location nextHorizontal = cart.getLocation().clone().add(new Vector(ax, 0, az));
 				b = nextHorizontal.getBlock();
-				if(!b.isEmpty() && !b.isLiquid() && b.getType().isSolid() && !b.getType().equals(Material.CARPET) && !b.getType().equals(Material.BARRIER)){ //Crashed into something
+				String name = b.getType().name().toLowerCase();
+				if(!b.isEmpty() && !b.isLiquid() && b.getType().isSolid() && !name.contains("carpet") && !b.getType().equals(Material.BARRIER)){ //Crashed into something
 					boolean inside = true;
 					double relY = nextHorizontal.getY()-b.getY();
 					if(relY < 0){
 						relY = 0;
 					}
-					String name = b.getType().name().toLowerCase();
 					if(name.contains("step") && relY >= 0.4){
 						inside = false;
 					}

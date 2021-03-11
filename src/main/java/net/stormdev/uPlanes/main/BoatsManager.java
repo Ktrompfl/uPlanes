@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -112,7 +111,7 @@ public class BoatsManager {
 		asyncSave();
 	}
 	public void asyncSave(){
-		main.plugin.getServer().getScheduler().runTaskAsynchronously(main.plugin, new BukkitRunnable(){
+		main.plugin.getServer().getScheduler().runTaskAsynchronously(main.plugin, new Runnable(){
 
 			public void run() {
 				save();

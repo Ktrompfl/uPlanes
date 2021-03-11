@@ -1,13 +1,12 @@
 package net.stormdev.uPlanes.presets;
 
-import java.util.*;
-
+import com.google.common.primitives.Doubles;
 import net.stormdev.uPlanes.main.ItemStackFromId;
 import net.stormdev.uPlanes.main.main;
-
-import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.material.MaterialData;
+
+import java.util.*;
 
 public class PresetManager {
 	public static boolean usePresets = false;
@@ -141,7 +140,7 @@ public class PresetManager {
 				
 				PlanePreset pp = new PlanePreset(id, speed, name, health, accelMod, turnAmountPerTick, hover, cost, displayBlock, displayOffset, hitBoxX, hitBoxZ, hoverMidair);
 				pp.setMaxPassengers(sect.getInt("passengers.max"));
-				pp.setBoatRotationOffsetDeg(ArrayUtils.toPrimitive(sect.getDoubleList("passengers.boatRotationOffsetDeg").toArray(new Double[]{})));
+				pp.setBoatRotationOffsetDeg(Doubles.toArray(sect.getDoubleList("passengers.boatRotationOffsetDeg")));
 
 				this.presets.add(pp);
 			} catch (Exception e) {
@@ -196,7 +195,7 @@ public class PresetManager {
 				BoatPreset pp = new BoatPreset(id, speed, name, health, accelMod, turnAmountPerTick, cost, displayBlock, displayOffset, hitBoxX, hitBoxZ);
 				pp.setMass(sect.getDouble("mass"));
 				pp.setMaxPassengers(sect.getInt("passengers.max"));
-				pp.setBoatRotationOffsetDeg(ArrayUtils.toPrimitive(sect.getDoubleList("passengers.boatRotationOffsetDeg").toArray(new Double[]{})));
+				pp.setBoatRotationOffsetDeg(Doubles.toArray(sect.getDoubleList("passengers.boatRotationOffsetDeg")));
 
 				this.boatPresets.add(pp);
 			} catch (Exception e) {

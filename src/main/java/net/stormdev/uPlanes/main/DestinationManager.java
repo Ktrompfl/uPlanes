@@ -16,7 +16,6 @@ import net.stormdev.uPlanes.utils.SerializableLocation;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class DestinationManager {
 	private ConcurrentHashMap<String, SerializableLocation> destinations =
@@ -79,7 +78,7 @@ public class DestinationManager {
 	}
 	
 	public void asyncSave(){
-		main.plugin.getServer().getScheduler().runTaskAsynchronously(main.plugin, new BukkitRunnable(){
+		main.plugin.getServer().getScheduler().runTaskAsynchronously(main.plugin, new Runnable(){
 
 			public void run() {
 				save();

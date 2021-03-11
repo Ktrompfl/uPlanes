@@ -1,11 +1,13 @@
 package net.stormdev.uPlanes.hover;
 
-import org.bukkit.Bukkit;
+import net.minecraft.server.v1_16_R2.BlockPosition;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_12_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftArmorStand;
+import org.bukkit.craftbukkit.v1_16_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_16_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R2.entity.CraftArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
@@ -21,7 +23,20 @@ public class CraftHoverCart extends CraftArmorStand implements HoverCart {
 		this.setVisible(false);
 		this.setGravity(true);
 	}
-	
+
+	@Override
+	public void addEquipmentLock(EquipmentSlot equipmentSlot, LockType lockType) {
+	}
+
+	@Override
+	public void removeEquipmentLock(EquipmentSlot equipmentSlot, LockType lockType) {
+	}
+
+	@Override
+	public boolean hasEquipmentLock(EquipmentSlot equipmentSlot, LockType lockType) {
+		return true;
+	}
+
 	@Override
 	public HoverCartEntity getHandle(){
 		return (HoverCartEntity) super.getHandle();
@@ -41,12 +56,12 @@ public class CraftHoverCart extends CraftArmorStand implements HoverCart {
 				if(this.entity.isVehicle()){
 					return false;
 				}
-				this.entity.teleportTo(location, cause.equals(PlayerTeleportEvent.TeleportCause.NETHER_PORTAL));
+				this.entity.teleportTo(((CraftWorld)location.getWorld()).getHandle(), new BlockPosition(location.getX(), location.getY(), location.getZ()));
 				return true;
 			} else {
 				this.entity.setLocation(location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
 				this.entity.setHeadRotation(location.getYaw());
-				this.entity.world.entityJoinedWorld(this.entity, false);
+				this.entity.world.getMinecraftWorld().entityJoinedWorld(this.entity);
 				return true;
 			}
 		} else {

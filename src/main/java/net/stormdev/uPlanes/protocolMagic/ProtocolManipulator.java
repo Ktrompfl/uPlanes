@@ -5,17 +5,16 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import net.minecraft.server.v1_12_R1.Entity;
+import net.minecraft.server.v1_16_R2.Entity;
 import net.stormdev.uPlanes.hover.CraftHoverCart;
 import net.stormdev.uPlanes.hover.HoverCart;
 import net.stormdev.uPlanes.hover.HoverCartEntity;
 import net.stormdev.uPlanes.main.main;
-import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_12_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_16_R2.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,6 +23,7 @@ import org.bukkit.event.vehicle.VehicleDestroyEvent;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ProtocolManipulator implements Listener {
@@ -38,7 +38,7 @@ public class ProtocolManipulator implements Listener {
     @EventHandler
     void logout(PlayerQuitEvent event){
         for(World w: Bukkit.getServer().getWorlds()) {
-            for(net.minecraft.server.v1_12_R1.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entityList)){
+            for(net.minecraft.server.v1_16_R2.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entitiesById.values())){
                 HoverCart hc = HoverCartEntity.getCart(e.getBukkitEntity());
                 if (hc == null) {
                     continue;
@@ -138,23 +138,21 @@ public class ProtocolManipulator implements Listener {
         if(!hce.hasFakeBoat()){
             return;
         }
-        Entity toSend = hce.getFakeBoat();
-        int entityType = 1; //1 is a boat, 78 is armor stand
         //Write the fake spawn packet
         double yawRad = (hce.getBukkitYaw()+hce.getFakeBoatRotationOffsetDeg(0))*(Math.PI/180);
         double pitchRad = hc.getHeadPose().getX();
         if(!hce.doesKnowAboutFakeEntities(player)) {
-            sendFakeEntitySpawn(player, hce.getFakeBoat(), hc.getLocation(), yawRad, pitchRad, 1); //Type 1 is BOAT, 78 is armor stand, 60 is arrow
-            sendFakeEntitySpawn(player, hce.getFakeArrow(), hc.getLocation(), yawRad, pitchRad, 60); //60 is arrow, 71 is item frame
-            sendFakeEntitySpawn(player, hce.getFakeArrow2(), hc.getLocation(), yawRad, pitchRad, 60);
+            sendFakeEntitySpawn(player, hce.getFakeBoat(), hc.getLocation(), yawRad, pitchRad);
+            sendFakeEntitySpawn(player, hce.getFakeArrow(), hc.getLocation(), yawRad, pitchRad);
+            sendFakeEntitySpawn(player, hce.getFakeArrow2(), hc.getLocation(), yawRad, pitchRad);
             sendFakeEntityPassengers(player,hce,hce.getFakeBoat().getId());
             if(hce.hasExtraFakeBoats()){
                 double yawRad2 = (hce.getBukkitYaw()+hce.getFakeBoatRotationOffsetDeg(1))*(Math.PI/180);
                 double yawRad3 = (hce.getBukkitYaw()+hce.getFakeBoatRotationOffsetDeg(2))*(Math.PI/180);
-                sendFakeEntitySpawn(player, hce.getFakeBoat2(), hc.getLocation(), yawRad2, pitchRad, 1);
-                sendFakeEntitySpawn(player, hce.getFakeBoat3(), hc.getLocation(), yawRad3, pitchRad, 1);
-                sendFakeEntitySpawn(player, hce.getFakeArrow3(), hc.getLocation(), yawRad2, pitchRad, 60);
-                sendFakeEntitySpawn(player, hce.getFakeArrow4(), hc.getLocation(), yawRad3, pitchRad, 60);
+                sendFakeEntitySpawn(player, hce.getFakeBoat2(), hc.getLocation(), yawRad2, pitchRad);
+                sendFakeEntitySpawn(player, hce.getFakeBoat3(), hc.getLocation(), yawRad3, pitchRad);
+                sendFakeEntitySpawn(player, hce.getFakeArrow3(), hc.getLocation(), yawRad2, pitchRad);
+                sendFakeEntitySpawn(player, hce.getFakeArrow4(), hc.getLocation(), yawRad3, pitchRad);
                 sendFakeEntityPassengers(player,hce.getFakeBoat(),hce.getFakeBoat2().getId(),hce.getFakeBoat3().getId());
                 sendFakeEntityPassengers(player,hce.getFakeBoat2(),hce.getFakeArrow().getId(),hce.getFakeArrow3().getId());
                 sendFakeEntityPassengers(player,hce.getFakeBoat3(),hce.getFakeArrow2().getId(),hce.getFakeArrow4().getId());
@@ -178,7 +176,7 @@ public class ProtocolManipulator implements Listener {
         }
     }
 
-    protected void sendFakeEntitySpawn(Player player, Entity toSend, Location l, double yawRad, double pitchRad,int entityType){
+    protected void sendFakeEntitySpawn(Player player, Entity toSend, Location l, double yawRad, double pitchRad){
         //Write the fake spawn packet
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
         packet.getIntegers().write(0,toSend.getId()); //Entity ID
@@ -190,9 +188,9 @@ public class ProtocolManipulator implements Listener {
         packet.getDoubles().write(1,l.getY());
         packet.getDoubles().write(2,l.getZ());
         packet.getIntegers().write(4,getCompressedAngle(pitchRad)); //Pitch
-        packet.getIntegers().write(5,getCompressedAngle(yawRad)); //Pitch
-        packet.getIntegers().write(6,entityType); //Type??
-        packet.getIntegers().write(7,0); //Data
+        packet.getIntegers().write(5,getCompressedAngle(yawRad)); //Yaw
+        packet.getIntegers().write(6,0); //Data
+        packet.getEntityTypeModifier().write(0,toSend.getBukkitEntity().getType()); //Type
 
         try {
             this.protocolManager.sendServerPacket(player,packet);
@@ -211,7 +209,7 @@ public class ProtocolManipulator implements Listener {
                     HoverCart hce = null;
                     HoverCartEntity nmsEntity = null;
                     for(World w: Bukkit.getServer().getWorlds()){
-                        for(net.minecraft.server.v1_12_R1.Entity e:((CraftWorld)w).getHandle().entityList){
+                        for(net.minecraft.server.v1_16_R2.Entity e:((CraftWorld)w).getHandle().entitiesById.values()){
                             if(entityId == e.getId()){
                                 HoverCart hc = HoverCartEntity.getCart(e.getBukkitEntity());
                                 if(hc == null){
@@ -240,7 +238,7 @@ public class ProtocolManipulator implements Listener {
                     int entityId = event.getPacket().getIntegers().read(0);
                     //Translate interacting with fake boat or arrows into interacting with real armor stand
                     for(World w:Bukkit.getServer().getWorlds()){
-                        for(net.minecraft.server.v1_12_R1.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entityList)){
+                        for(net.minecraft.server.v1_16_R2.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entitiesById.values())){
                             if(e instanceof HoverCartEntity){
                                 if(((HoverCartEntity) e).hasFakeBoat()){
                                     if(entityId == ((HoverCartEntity) e).getFakeBoat().getId()
@@ -271,7 +269,7 @@ public class ProtocolManipulator implements Listener {
                     HoverCart hce = null;
                     HoverCartEntity nmsEntity = null;
                     for(World w:Bukkit.getServer().getWorlds()){
-                        for(net.minecraft.server.v1_12_R1.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entityList)){
+                        for(net.minecraft.server.v1_16_R2.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entitiesById.values())){
                             if(entityId == e.getId()){
                                 //Bukkit.broadcastMessage("(name: "+e.getName()+")");
                                 HoverCart hc = HoverCartEntity.getCart(e.getBukkitEntity());
@@ -296,13 +294,13 @@ public class ProtocolManipulator implements Listener {
                     List<org.bukkit.entity.Entity> correctPassengers = hce.getPassengers();
                     passengers = new int[correctPassengers.size()];
                     for (int i=0;i<correctPassengers.size();i++){
-                        passengers[i] = ((org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity)correctPassengers.get(i)).getHandle().getId();
+                        passengers[i] = ((org.bukkit.craftbukkit.v1_16_R2.entity.CraftEntity)correctPassengers.get(i)).getHandle().getId();
                     }
 
                     final int[] passenger1 = passengers.length > 0 ? new int[]{passengers[0]} : new int[0];
                     final int[] passenger2;
                     if(!nmsEntity.hasExtraFakeBoats()) {
-                        passenger2 = passengers.length > 1 ? ArrayUtils.subarray(passengers, 1, passengers.length) : new int[0];
+                        passenger2 = passengers.length > 1 ? Arrays.copyOfRange(passengers, 1, passengers.length) : new int[0];
                     }
                     else {
                         passenger2 = passengers.length > 1 ? new int[]{passengers[1]} : new int[0];
@@ -311,7 +309,7 @@ public class ProtocolManipulator implements Listener {
                     final int[] passenger4;
                     if(nmsEntity.hasExtraFakeBoats()) {
                         if(hce.getMaxPassengers() == 3) {
-                            passenger3 = passengers.length > 1 ? ArrayUtils.subarray(passengers, 1, passengers.length) : new int[0];
+                            passenger3 = passengers.length > 1 ? Arrays.copyOfRange(passengers, 1, passengers.length) : new int[0];
                         }
                         else {
                             passenger3 = passengers.length > 2 ? new int[]{passengers[2]} : new int[0];
@@ -320,7 +318,7 @@ public class ProtocolManipulator implements Listener {
                         passenger3 = new int[0];
                     }
                     if(nmsEntity.hasExtraFakeBoats() && hce.getMaxPassengers() > 3) {
-                        passenger4 = passengers.length > 3 ? ArrayUtils.subarray(passengers, 3, passengers.length) : new int[0];
+                        passenger4 = passengers.length > 3 ? Arrays.copyOfRange(passengers, 3, passengers.length) : new int[0];
                     }else{
                         passenger4 = new int[0];
                     }
@@ -356,7 +354,7 @@ public class ProtocolManipulator implements Listener {
                     HoverCart hce = null;
                     HoverCartEntity nmsEntity = null;
                     for(World w:Bukkit.getServer().getWorlds()){
-                        for(net.minecraft.server.v1_12_R1.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entityList)){
+                        for(net.minecraft.server.v1_16_R2.Entity e:new ArrayList<>(((CraftWorld)w).getHandle().entitiesById.values())){
                             if(entityId == e.getId()){
                                 HoverCart hc = HoverCartEntity.getCart(e.getBukkitEntity());
                                 if(hc == null){

@@ -88,7 +88,6 @@ public class IconMenu implements Listener,InventoryHolder {
 	public void open(Player player) {
 		Inventory inventory = Bukkit.createInventory(this, size, name);
 		enabled = true;
-		name = inventory.getTitle();
 		for (int i = 0; i < optionIcons.length; i++) {
 			if (optionIcons[i] != null) {
 				inventory.setItem(i, optionIcons[i]);
@@ -118,7 +117,7 @@ public class IconMenu implements Listener,InventoryHolder {
 			if(this.plugin == null){
 				Bukkit.broadcastMessage("PLUGIN NULL HALP HALP");
 			}
-			if(!event.getInventory().getName().equals(name)){
+			if(!event.getView().getTitle().equals(name)){
 				return;
 			}
 			UEntityMeta.removeMetadata(event.getPlayer(), metaData);

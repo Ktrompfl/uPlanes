@@ -93,7 +93,6 @@ public class main extends JavaPlugin {
 	 */
 	public void onEnable(){
 		plugin = this;
-		HoverCartEntity.register();
 		getDataFolder().mkdirs();
 		File langFile = new File(getDataFolder().getAbsolutePath()
 				+ File.separator + "lang.yml");
@@ -357,14 +356,14 @@ public class main extends JavaPlugin {
 		}
 		
 		listener = new uPlanesListener(this);
-		
+		/* FIXME: Intercepting the WorldGuard events in WorldGuardListener leaves them cancelled in the end
 		if(Bukkit.getPluginManager().getPlugin("WorldGuard") != null){
 			new WorldGuardListener();
 		}
 		else {
 			main.logger.info("WorldGuard handling not enabled!");
 		}
-		
+		*/
 		this.planeManager = new PlanesManager(planesSaveFile);
 		this.boatsManager = new BoatsManager(boatsSaveFile);
 		getServer().getPluginManager().registerEvents(listener, this);
@@ -380,9 +379,9 @@ public class main extends JavaPlugin {
 		recipe.setIngredient('0', Material.REDSTONE);
 		recipe.setIngredient('1', Material.LEVER);
 		recipe.setIngredient('2', Material.REDSTONE);
-		recipe.setIngredient('3', Material.WOOD_PLATE);
+		recipe.setIngredient('3', Material.OAK_PRESSURE_PLATE);
 		recipe.setIngredient('4', Material.MINECART);
-		recipe.setIngredient('5', Material.WOOD_PLATE);
+		recipe.setIngredient('5', Material.OAK_PRESSURE_PLATE);
 		
 		//Create a blank hoverplane item
 		ItemStack hplane = new ItemStack(Material.MINECART);
@@ -395,10 +394,10 @@ public class main extends JavaPlugin {
 		hoverRecipe.setIngredient('0', Material.REDSTONE);
 		hoverRecipe.setIngredient('1', Material.LEVER);
 		hoverRecipe.setIngredient('2', Material.REDSTONE);
-		hoverRecipe.setIngredient('3', Material.WOOD_PLATE);
+		hoverRecipe.setIngredient('3', Material.OAK_PRESSURE_PLATE);
 		hoverRecipe.setIngredient('4', Material.MINECART);
-		hoverRecipe.setIngredient('5', Material.WOOD_PLATE);
-		hoverRecipe.setIngredient('7', Material.REDSTONE_TORCH_ON);
+		hoverRecipe.setIngredient('5', Material.OAK_PRESSURE_PLATE);
+		hoverRecipe.setIngredient('7', Material.REDSTONE_TORCH);
 		
 		getServer().addRecipe(recipe);
 		getServer().addRecipe(hoverRecipe);

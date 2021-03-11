@@ -18,7 +18,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class PlanesManager {
 	private ConcurrentHashMap<UUID, Plane> planes = new ConcurrentHashMap<UUID, Plane>();
@@ -139,7 +138,7 @@ public class PlanesManager {
 		asyncSave();
 	}
 	public void asyncSave(){
-		main.plugin.getServer().getScheduler().runTaskAsynchronously(main.plugin, new BukkitRunnable(){
+		main.plugin.getServer().getScheduler().runTaskAsynchronously(main.plugin, new Runnable(){
 
 			public void run() {
 				save();
